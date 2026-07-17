@@ -87,7 +87,21 @@ Webhook Response
 - n8n Automation
 
 ---
+## Workflow
 
+<img src="screenshots/workflow1.png" width="1000">
+
+## Test Request
+
+<img src="screenshots/request.png" width="700">
+
+## Test Response
+
+<img src="screenshots/response.png" width="700">
+
+## Supabase Knowledge Base
+
+<img src="screenshots/supabase-table.png" width="900">
 ## Author
 
 Built by Zvc Qds using n8n and Google Gemini.
