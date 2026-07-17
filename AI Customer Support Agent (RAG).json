@@ -1,0 +1,246 @@
+{
+  "name": "AI Customer Support Agent (RAG)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "customer-support",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4623cc27-c233-4d5f-a5d2-da971f7aae3f",
+      "name": "Webhook",
+      "webhookId": "d8b2c41f-a6de-4010-bf8a-65351b12626b"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "AQ.Ab8RN6Jr7yjzo7gxdbI13vXwVbdlso_z-X1IfOn3_G4C28Kh8g"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"You are a classifier.\\n\\nPossible topics:\\n- shipping\\n- returns\\n- payment\\n- warranty\\n- support\\n- company\\n\\nReturn ONLY one word.\\n\\nQuestion:\\n{{$json.body.question}}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "31bdedf4-646d-4c7d-9487-b6d051a1c0f9",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const topic = $input.first().json.candidates[0].content.parts[0].text.trim();\n\nreturn [\n  {\n    json: {\n      topic\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "4f1eb138-c7b1-4b19-9589-9d79ac040b26",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "knowledge_base",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "topic",
+              "condition": "eq",
+              "keyValue": "={{$json.topic}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        608,
+        0
+      ],
+      "id": "b2af4451-f3eb-4f9a-ba26-92540c58e353",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "TyYIs5ETY6823Iuz",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "AQ.Ab8RN6Jr7yjzo7gxdbI13vXwVbdlso_z-X1IfOn3_G4C28Kh8g"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"You are a customer support AI.\\n\\nAnswer ONLY using the knowledge below.\\n\\nIf the answer is not contained in the knowledge, reply exactly:\\nI couldn't find this information in our knowledge base.\\n\\nKnowledge:\\n{{$json.content}}\\n\\nCustomer question:\\n{{$node['Webhook'].json.body.question}}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        816,
+        0
+      ],
+      "id": "02c96c4a-b5a4-4966-8676-51c730853422",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const answer = $input.first().json.candidates[0].content.parts[0].text.trim();\n\nreturn [\n  {\n    json: {\n      answer\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "a4a38c19-6500-460f-a838-b2b467ddd2ec",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"answer\": \"{{$json.answer}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1232,
+        0
+      ],
+      "id": "87b1f924-eecd-4f0d-aef0-3d858b93dfd3",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2b794a75-3cf5-49ab-bbfe-3e4a2ac4d5fb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cc2ce1497fea5ef495c4fc759ceafe1145b1ecced76f0b3cadc9843ca9ce88bd"
+  },
+  "nodeGroups": [],
+  "id": "XXgFlEU7wNVsV9Aq",
+  "tags": []
+}
