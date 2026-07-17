@@ -101,7 +101,7 @@ Webhook Response
 
 ## Supabase Knowledge Base
 
-<img src="screenshots/supabase-table.png" width="900">
+<img src="screenshots/Knowledge_base.png" width="900">
 ## Author
 
 Built by Zvc Qds using n8n and Google Gemini.
