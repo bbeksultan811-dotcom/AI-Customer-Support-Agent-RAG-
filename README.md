@@ -104,4 +104,4 @@ Webhook Response
 <img src="screenshots/Knowledge_base.png" width="900">
 ## Author
 
-Built by Zvc Qds using n8n and Google Gemini.
+Built by Farangiz using n8n and Google Gemini.
